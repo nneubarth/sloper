@@ -160,14 +160,6 @@ func addRoutes(db *sql.DB, config Config) {
 
 func initClimbDB(db *sql.DB) {
 
-	// attemptTypes := []AttemptType{AttemptType{"Onsight send"},
-	// 	AttemptType{"Send"},
-	// 	AttemptType{"Completed with rest"},
-	// 	AttemptType{"Attempted"}}
-	// for _, attemptType := range attemptTypes {
-	// 	insertStatement(db, &attemptType)
-	// }
-
 	climbTypes := []ClimbType{ClimbType{"Top rope"}, ClimbType{"Boulder"}}
 	for _, climbType := range climbTypes {
 		insertStatement(db, &climbType)
