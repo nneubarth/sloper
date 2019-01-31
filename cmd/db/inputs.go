@@ -2,10 +2,10 @@ package main
 
 // RouteJSON represents returned object from routes api
 type RouteJSON struct {
-	Data []Route `json:"aaData"`
+	Data []route `json:"aaData"`
 }
 
 // ClimbJSON represents returned object from routes api
 type ClimbJSON struct {
-	Data []Climb `json:"aaData"`
+	Data []climb `json:"aaData"`
 }
