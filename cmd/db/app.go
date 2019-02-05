@@ -19,23 +19,25 @@ type App struct {
 func (a *App) Initialize(config Config) {
 	// returns a handle (*sql.DB) for the database.
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s", config.Database.Username, config.Database.Password, config.Database.DBName))
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+	a.DB = db
 
 	// Open doesn't open a connection. Validate DSN data:
 	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 
-	initClimbDB(db)
+	initClimbDB(a.DB)
 
 	//add routes
-	addRoutes(db, config)
+	addRoutes(a.DB, config)
 
 	//add climbers
-	addClimbersAndClimbs(db, config)
+	addClimbersAndClimbs(a.DB, config)
+
+	// a.Router = mux.NewRouter()
+	// a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")
+
+	runRawQuery(a.DB, "SELECT * FROM climbdb.attempt_types")
 
 	// defer closing the database connection
 	defer db.Close()
@@ -44,17 +46,8 @@ func (a *App) Initialize(config Config) {
 // Run starts an HTTP server.
 func (a *App) Run(addr string) {}
 
-func runRawQuery(db *sql.DB, queryString string) sql.Result {
-	stmt, err := db.Prepare(queryString)
-
+func checkErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	res, err := stmt.Exec()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return res
 }
