@@ -8,19 +8,13 @@ import (
 )
 
 func logExecStatement(result sql.Result, err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 
 	lastID, err := result.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 
 	rowCnt, err := result.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 
 	log.Printf("ID = %d, affected = %d\n", lastID, rowCnt)
 
@@ -32,9 +26,8 @@ type attemptType struct {
 
 func (at *attemptType) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO attempt_types(type) VALUES(?) ON DUPLICATE KEY UPDATE type=type")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(at.typeName)
 	logExecStatement(res, err)
 }
@@ -49,9 +42,8 @@ type climbType struct {
 
 func (ct *climbType) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO climb_types(type) VALUES(?) ON DUPLICATE KEY UPDATE type=type")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(ct.typeName)
 	logExecStatement(res, err)
 }
@@ -67,9 +59,8 @@ type grade struct {
 
 func (g *grade) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO grades(name, climb_type) VALUES(?,(SELECT climb_type_id FROM climb_types WHERE type=?)) ON DUPLICATE KEY UPDATE name=name")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(g.gradeName, g.climbType.typeName)
 	logExecStatement(res, err)
 }
@@ -90,9 +81,8 @@ type route struct {
 
 func (r *route) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?)) ON DUPLICATE KEY UPDATE name=name")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(r.RouteName, r.routeGrade.gradeName, r.setDate, r.routeSetter.name)
 	logExecStatement(res, err)
 }
@@ -107,9 +97,8 @@ type climber struct {
 
 func (c *climber) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO climbers(name) VALUES(?) ON DUPLICATE KEY UPDATE name=name")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(c.name)
 	logExecStatement(res, err)
 }
@@ -124,9 +113,8 @@ type setter struct {
 
 func (s *setter) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO setters(name) VALUES(?) ON DUPLICATE KEY UPDATE name=name")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(s.name)
 	logExecStatement(res, err)
 }
@@ -151,9 +139,8 @@ func (c *climb) insert(db *sql.DB) {
 		?,
 		(SELECT route_id FROM routes WHERE name=?),
 		(SELECT attempt_type_id FROM attempt_types WHERE type=?)) ON DUPLICATE KEY UPDATE climber=climber`)
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	res, err := stmt.Exec(c.climber.name, c.climbDate, c.route.RouteName, c.attemptType.typeName)
 	logExecStatement(res, err)
 }

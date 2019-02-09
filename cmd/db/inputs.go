@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -33,9 +32,8 @@ func addRoutes(db *sql.DB, config Config) {
 	url := config.DataSource.Routes
 
 	res, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
+
 	defer res.Body.Close()
 
 	decoder := json.NewDecoder(res.Body)
@@ -69,9 +67,8 @@ func addRoutes(db *sql.DB, config Config) {
 		// convert date
 		layout := "2006-01-02"
 		t, err := time.Parse(layout, route.DateString)
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkErr(err)
+
 		route.setDate = t
 
 		//load
@@ -89,9 +86,8 @@ func addClimbersAndClimbs(db *sql.DB, config Config) {
 		name := user.Name
 
 		res, err := http.Get(url)
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkErr(err)
+
 		defer res.Body.Close()
 
 		decoder := json.NewDecoder(res.Body)
@@ -113,9 +109,8 @@ func addClimbersAndClimbs(db *sql.DB, config Config) {
 			// climb.DateString = re.FindStringSubmatch(climb.DateString)[1]
 			layout := "2006-01-02"
 			t, err := time.Parse(layout, climb.DateString)
-			if err != nil {
-				log.Fatal(err)
-			}
+			checkErr(err)
+
 			climb.climbDate = t
 
 			// get attempt type

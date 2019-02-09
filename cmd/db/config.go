@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -31,7 +31,7 @@ func LoadConfiguration(file string) Config {
 	configFile, err := os.Open(file)
 	defer configFile.Close()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err)
 	}
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)

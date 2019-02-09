@@ -3,10 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strconv"
 )
 
@@ -16,18 +14,21 @@ type QueryResult struct {
 	Data    [][]interface{} `json:"data"`
 }
 
+type queryRequest struct {
+	QueryString string `json:"queryString"`
+}
+
 func (a *App) rawQueryHandler(w http.ResponseWriter, r *http.Request) {
-	var queryString string
+	var queryRequest queryRequest
 	decoder := json.NewDecoder(r.Body)
 
-	w.WriteHeader(http.StatusOK)
-	if err := decoder.Decode(&queryString); err != nil {
+	if err := decoder.Decode(&queryRequest); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	res, err := runRawQuery(a.DB, queryString)
+	res, err := runRawQuery(a.DB, queryRequest.QueryString)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -35,7 +36,7 @@ func (a *App) rawQueryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Print(res)
-	respondWithJSON(w, http.StatusCreated, res)
+	respondWithJSON(w, http.StatusOK, res)
 
 }
 
@@ -76,13 +77,18 @@ func runRawQuery(db *sql.DB, queryString string) (QueryResult, error) {
 
 		data = append(data, dataRow)
 
-		for i, val := range data[len(data)-1] {
-			fmt.Println("name:", colNames[i], "value type:", reflect.TypeOf(val), "value:", val)
-		}
+		// for i, val := range data[len(data)-1] {
+		// 	fmt.Println("name:", colNames[i], "value type:", reflect.TypeOf(val), "value:", val)
+		// }
 
 	}
 
 	result.Data = data
+	// var unmResult QueryResult
+	// response, _ := json.Marshal(result)
+	// json.Unmarshal(response, &unmResult)
+
+	// fmt.Println(unmResult)
 
 	return result, errQuery
 }
