@@ -93,6 +93,18 @@ func runRawQuery(db *sql.DB, queryString string) (QueryResult, error) {
 	return result, errQuery
 }
 
+func (a *App) getClimbers(w http.ResponseWriter, r *http.Request) {
+
+	res, err := getClimbers(a.DB)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, res)
+}
+
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})
 }

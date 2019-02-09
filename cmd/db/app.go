@@ -43,6 +43,7 @@ func (a *App) Initialize(config Config) {
 
 	a.Router = mux.NewRouter()
 	a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")
+	a.Router.HandleFunc("/climbers", a.getClimbers).Methods("Get")
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",

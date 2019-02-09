@@ -92,19 +92,41 @@ func (r *route) get(db *sql.DB) error {
 }
 
 type climber struct {
-	name string
+	Name string `json:"name"`
 }
 
 func (c *climber) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO climbers(name) VALUES(?) ON DUPLICATE KEY UPDATE name=name")
 	checkErr(err)
 
-	res, err := stmt.Exec(c.name)
+	res, err := stmt.Exec(c.Name)
 	logExecStatement(res, err)
 }
 
 func (c *climber) get(db *sql.DB) error {
 	return errors.New("Not implemented")
+}
+
+func getClimbers(db *sql.DB) ([]climber, error) {
+	var climbers []climber
+
+	rows, errQuery := db.Query("SELECT name FROM climbdb.climbers;")
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var climber climber
+		var name string
+		err := rows.Scan(&name)
+		checkErr(err)
+		log.Println(name)
+
+		climber.Name = name
+
+		climbers = append(climbers, climber)
+	}
+
+	return climbers, errQuery
 }
 
 type setter struct {
@@ -141,7 +163,7 @@ func (c *climb) insert(db *sql.DB) {
 		(SELECT attempt_type_id FROM attempt_types WHERE type=?)) ON DUPLICATE KEY UPDATE climber=climber`)
 	checkErr(err)
 
-	res, err := stmt.Exec(c.climber.name, c.climbDate, c.route.RouteName, c.attemptType.typeName)
+	res, err := stmt.Exec(c.climber.Name, c.climbDate, c.route.RouteName, c.attemptType.typeName)
 	logExecStatement(res, err)
 }
 
