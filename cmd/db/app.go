@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" // _ alias for package qualifier so that exported names aren't visible in code
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -51,7 +52,7 @@ func (a *App) Initialize(config Config) {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      a.Router, // Pass our instance of gorilla/mux in.
+		Handler:      handlers.CORS(handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"http://localhost:3000"}))(a.Router), // Pass our instance of gorilla/mux in.
 	}
 
 	// Run our server in a goroutine so that it doesn't block.
