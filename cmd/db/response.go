@@ -105,6 +105,19 @@ func (a *App) getClimbers(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, res)
 }
 
+func (a *App) getCurrentRoutes(w http.ResponseWriter, r *http.Request) {
+
+	res, err := getCurrentRoutes(a.DB)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, res)
+
+}
+
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})
 }

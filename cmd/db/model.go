@@ -53,7 +53,7 @@ func (ct *climbType) get(db *sql.DB) error {
 }
 
 type grade struct {
-	gradeName string
+	name      string
 	climbType climbType
 }
 
@@ -61,7 +61,7 @@ func (g *grade) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO grades(name, climb_type) VALUES(?,(SELECT climb_type_id FROM climb_types WHERE type=?)) ON DUPLICATE KEY UPDATE name=name")
 	checkErr(err)
 
-	res, err := stmt.Exec(g.gradeName, g.climbType.typeName)
+	res, err := stmt.Exec(g.name, g.climbType.typeName)
 	logExecStatement(res, err)
 }
 
@@ -77,9 +77,9 @@ type route struct {
 	GradeString string `json:"grade"`
 	setter      setter
 	SetterName  string `json:"setter"`
-	color       string
+	Color       string `json:"color"`
 	address     string
-	position    string
+	Position    string `json:"position"`
 	isCurrent   bool
 }
 
@@ -87,12 +87,46 @@ func (r *route) insert(db *sql.DB) {
 	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address, position, is_current) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?,?,?) ON DUPLICATE KEY UPDATE is_current=?, grade=(SELECT grade_id FROM grades WHERE name=?), date=?, setter=(SELECT setter_id FROM setters WHERE name=?), color=?, route_address=?, position=?")
 	checkErr(err)
 
-	res, err := stmt.Exec(r.RouteName, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.position, r.isCurrent, r.isCurrent, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.position)
+	res, err := stmt.Exec(r.RouteName, r.grade.name, r.setDate, r.setter.name, r.Color, r.address, r.Position, r.isCurrent, r.isCurrent, r.grade.name, r.setDate, r.setter.name, r.Color, r.address, r.Position)
 	logExecStatement(res, err)
 }
 
 func (r *route) get(db *sql.DB) error {
 	return errors.New("Not implemented")
+}
+
+func getCurrentRoutes(db *sql.DB) ([]route, error) {
+	var routes []route
+
+	rows, errQuery := db.Query("SELECT routes.name AS name, grades.name AS grade, routes.date AS date, setters.name AS setter, routes.color AS color, routes.position AS position FROM routes INNER JOIN grades ON grades.grade_id=routes.grade INNER JOIN setters ON setters.setter_id=routes.setter WHERE routes.is_current=1;")
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var route route
+		var name string
+		var gradeName string
+		var setterName string
+		var color string
+		var position string
+		var date string
+
+		err := rows.Scan(&name, &gradeName, &date, &setterName, &color, &position)
+		checkErr(err)
+
+		route.RouteName = name
+		route.GradeString = gradeName
+		route.SetterName = setterName
+		route.Color = color
+		route.Position = position
+		route.DateString = date
+
+		log.Println(route)
+
+		routes = append(routes, route)
+	}
+
+	return routes, errQuery
 }
 
 type climber struct {
@@ -114,7 +148,7 @@ func (c *climber) get(db *sql.DB) error {
 func getClimbers(db *sql.DB) ([]climber, error) {
 	var climbers []climber
 
-	rows, errQuery := db.Query("SELECT name FROM climbdb.climbers;")
+	rows, errQuery := db.Query("SELECT name FROM climbers;")
 	checkErr(errQuery)
 	defer rows.Close()
 

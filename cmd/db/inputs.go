@@ -73,7 +73,7 @@ func addRoutes(db *sql.DB, config Config) {
 
 		// convert color
 		re = regexp.MustCompile(".*color:#(.*)\\\".*")
-		route.color = re.FindStringSubmatch(route.RouteName)[1]
+		route.Color = re.FindStringSubmatch(route.RouteName)[1]
 
 		// convert name
 		re = regexp.MustCompile(".*</i>\\s(.*)</a>$")
@@ -90,7 +90,7 @@ func addRoutes(db *sql.DB, config Config) {
 		route.isCurrent = true
 
 		// get position
-		route.position = getPosition(config.DataSource.Route, route.address)
+		route.Position = getPosition(config.DataSource.Route, route.address)
 
 		//load
 		route.insert(db)
