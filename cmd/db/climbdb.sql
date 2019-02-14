@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `climbdb`.`routes` (
   `color` VARCHAR(6) NULL,
   `route_address` VARCHAR(12) NULL,
   `position` VARCHAR(5) NULL,
+  `is_current` TINYINT NOT NULL DEFAULT 0,
   PRIMARY KEY (`route_id`),
   INDEX `grade_idx` (`grade` ASC) VISIBLE,
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,

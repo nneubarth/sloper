@@ -16,6 +16,7 @@ type Config struct {
 	DataSource struct {
 		Routes string `json:"routes"`
 		Users  []User `json:"users"`
+		Route  string `json:"route"`
 	} `json:"datasource"`
 }
 

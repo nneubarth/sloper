@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -30,6 +31,12 @@ func initClimbDB(db *sql.DB) {
 
 func addRoutes(db *sql.DB, config Config) {
 	url := config.DataSource.Routes
+
+	// reset all isCurrent values to false
+	stmt, err := db.Prepare("UPDATE routes SET is_current = 0")
+	checkErr(err)
+	updateRes, err := stmt.Exec()
+	logExecStatement(updateRes, err)
 
 	res, err := niceRequest(url, true)
 	checkErr(err)
@@ -78,6 +85,12 @@ func addRoutes(db *sql.DB, config Config) {
 		checkErr(err)
 
 		route.setDate = t
+
+		// pulled from web so is current
+		route.isCurrent = true
+
+		// get position
+		route.position = getPosition(config.DataSource.Route, route.address)
 
 		//load
 		route.insert(db)
@@ -145,8 +158,22 @@ func niceRequest(url string, delay bool) (*http.Response, error) {
 	response, err := client.Do(request)
 
 	if delay {
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 10)
 	}
 
 	return response, err
+}
+
+func getPosition(baseURL string, address string) string {
+	res, errRequest := niceRequest(baseURL+address, true)
+	checkFatalErr(errRequest)
+	defer res.Body.Close()
+
+	body, errBody := ioutil.ReadAll(res.Body)
+	checkFatalErr(errBody)
+
+	re := regexp.MustCompile("<img src=\"images/marker.png\" style=\"position: absolute; top: (.*)%; left: (.*)%;\" alt=\"\">")
+	position := re.FindStringSubmatch(string(body))[1] + "." + re.FindStringSubmatch(string(body))[2]
+
+	return position
 }

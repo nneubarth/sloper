@@ -80,13 +80,14 @@ type route struct {
 	color       string
 	address     string
 	position    string
+	isCurrent   bool
 }
 
 func (r *route) insert(db *sql.DB) {
-	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?) ON DUPLICATE KEY UPDATE name=name")
+	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address, position, is_current) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?,?,?) ON DUPLICATE KEY UPDATE is_current=?, grade=(SELECT grade_id FROM grades WHERE name=?), date=?, setter=(SELECT setter_id FROM setters WHERE name=?), color=?, route_address=?, position=?")
 	checkErr(err)
 
-	res, err := stmt.Exec(r.RouteName, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.color, r.address)
+	res, err := stmt.Exec(r.RouteName, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.position, r.isCurrent, r.isCurrent, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.position)
 	logExecStatement(res, err)
 }
 
