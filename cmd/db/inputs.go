@@ -31,7 +31,7 @@ func initClimbDB(db *sql.DB) {
 func addRoutes(db *sql.DB, config Config) {
 	url := config.DataSource.Routes
 
-	res, err := http.Get(url)
+	res, err := niceRequest(url, true)
 	checkErr(err)
 
 	defer res.Body.Close()
@@ -47,18 +47,26 @@ func addRoutes(db *sql.DB, config Config) {
 		} else {
 			routeClimbType = climbType{"Top rope"}
 		}
-		route.routeGrade = grade{route.GradeString, routeClimbType}
+		route.grade = grade{route.GradeString, routeClimbType}
 
 		// add grade to database if not present
-		route.routeGrade.insert(db)
+		route.grade.insert(db)
 
 		// convert setter
 		re := regexp.MustCompile(".*>(.*)</a>$")
 		route.SetterName = re.FindStringSubmatch(route.SetterName)[1]
-		route.routeSetter = setter{route.SetterName}
+		route.setter = setter{route.SetterName}
 
 		// add setter to database if not present
-		route.routeSetter.insert(db)
+		route.setter.insert(db)
+
+		// convert address
+		re = regexp.MustCompile("<a href=\\\"route\\?(.*)\\\"><i class=.*")
+		route.address = re.FindStringSubmatch(route.RouteName)[1]
+
+		// convert color
+		re = regexp.MustCompile(".*color:#(.*)\\\".*")
+		route.color = re.FindStringSubmatch(route.RouteName)[1]
 
 		// convert name
 		re = regexp.MustCompile(".*</i>\\s(.*)</a>$")
@@ -85,7 +93,7 @@ func addClimbersAndClimbs(db *sql.DB, config Config) {
 		url := user.URL
 		name := user.Name
 
-		res, err := http.Get(url)
+		res, err := niceRequest(url, true)
 		checkErr(err)
 
 		defer res.Body.Close()
@@ -123,4 +131,22 @@ func addClimbersAndClimbs(db *sql.DB, config Config) {
 		}
 	}
 
+}
+
+func niceRequest(url string, delay bool) (*http.Response, error) {
+	client := &http.Client{
+		Timeout: time.Second * 30,
+	}
+
+	request, err := http.NewRequest("GET", url, nil)
+	checkFatalErr(err)
+	request.Header.Set("User-Agent", "Go-http-client/1.1")
+
+	response, err := client.Do(request)
+
+	if delay {
+		time.Sleep(time.Second * 30)
+	}
+
+	return response, err
 }

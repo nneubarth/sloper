@@ -71,19 +71,22 @@ func (g *grade) get(db *sql.DB) error {
 
 type route struct {
 	RouteName   string `json:"route"`
-	routeGrade  grade
+	grade       grade
 	setDate     time.Time
 	DateString  string `json:"date"`
 	GradeString string `json:"grade"`
-	routeSetter setter
+	setter      setter
 	SetterName  string `json:"setter"`
+	color       string
+	address     string
+	position    string
 }
 
 func (r *route) insert(db *sql.DB) {
-	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?)) ON DUPLICATE KEY UPDATE name=name")
+	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?) ON DUPLICATE KEY UPDATE name=name")
 	checkErr(err)
 
-	res, err := stmt.Exec(r.RouteName, r.routeGrade.gradeName, r.setDate, r.routeSetter.name)
+	res, err := stmt.Exec(r.RouteName, r.grade.gradeName, r.setDate, r.setter.name, r.color, r.address, r.color, r.address)
 	logExecStatement(res, err)
 }
 
