@@ -37,9 +37,6 @@ class App extends Component {
     this.state = {
       climbers: []
     };
-  }
-
-  componentWillMount() {
     fetch("http://localhost:8080/climbers")
       .then(response => {
         if (response.ok) {
@@ -60,6 +57,7 @@ class App extends Component {
         );
       });
   }
+
   render() {
     const { classes } = this.props;
     const { climbers } = this.state;
