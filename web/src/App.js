@@ -4,6 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 
 import TopBar from "./TopBar";
+import RouteTable from "./RouteTable";
 
 const theme = createMuiTheme({
   palette: {
@@ -35,7 +36,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      climbers: []
+      climbers: [],
+      currentRoutes: []
     };
     fetch("http://localhost:8080/climbers")
       .then(response => {
@@ -56,17 +58,34 @@ class App extends Component {
           error.message
         );
       });
+    fetch("http://localhost:8080/current-routes")
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error("Network response was not ok.");
+      })
+      .then(data => {
+        this.setState({ currentRoutes: data });
+      })
+      .catch(function(error) {
+        console.log(
+          "There has been a problem with your fetch operation: ",
+          error.message
+        );
+      });
   }
 
   render() {
     const { classes } = this.props;
-    const { climbers } = this.state;
+    const { climbers, currentRoutes } = this.state;
 
     return (
       <MuiThemeProvider theme={theme}>
         <div className="App">
           <div className={classes.root}>
             <TopBar climberNames={climbers} />
+            <RouteTable currentRoutes={currentRoutes} />
           </div>
         </div>
       </MuiThemeProvider>
