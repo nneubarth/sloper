@@ -34,13 +34,13 @@ func (a *App) Initialize(config Config) {
 	err = db.Ping()
 	checkFatalErr(err)
 
-	// initClimbDB(a.DB)
+	initClimbDB(a.DB)
 
-	// //add routes
-	// addRoutes(a.DB, config)
+	//add routes
+	addRoutes(a.DB, config)
 
-	// //add climbers
-	// addClimbersAndClimbs(a.DB, config)
+	//add climbers
+	addClimbersAndClimbs(a.DB, config)
 
 	a.Router = mux.NewRouter()
 	a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")

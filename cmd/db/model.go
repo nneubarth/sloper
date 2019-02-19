@@ -81,18 +81,53 @@ type route struct {
 	address     string
 	Position    string `json:"position"`
 	isCurrent   bool
+	id          int
 }
 
 func (r *route) insert(db *sql.DB) {
-	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address, position, is_current) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?,?,?) ON DUPLICATE KEY UPDATE is_current=?, grade=(SELECT grade_id FROM grades WHERE name=?), date=?, setter=(SELECT setter_id FROM setters WHERE name=?), color=?, route_address=?, position=?")
+	stmt, err := db.Prepare("INSERT INTO routes(name, grade, date, setter, color, route_address, is_current) VALUES(?,(SELECT grade_id FROM grades WHERE name=?),?,(SELECT setter_id FROM setters WHERE name=?),?,?,?) ON DUPLICATE KEY UPDATE is_current=?, grade=(SELECT grade_id FROM grades WHERE name=?), date=?, setter=(SELECT setter_id FROM setters WHERE name=?), color=?, route_address=?")
 	checkErr(err)
 
-	res, err := stmt.Exec(r.RouteName, r.grade.name, r.setDate, r.setter.name, r.Color, r.address, r.Position, r.isCurrent, r.isCurrent, r.grade.name, r.setDate, r.setter.name, r.Color, r.address, r.Position)
+	res, err := stmt.Exec(r.RouteName, r.grade.name, r.setDate, r.setter.name, r.Color, r.address, r.isCurrent, r.isCurrent, r.grade.name, r.setDate, r.setter.name, r.Color, r.address)
+	logExecStatement(res, err)
+}
+
+func (r *route) updateRoutePosition(db *sql.DB) {
+	stmt, err := db.Prepare("UPDATE routes SET position=? WHERE route_id=?")
+	checkErr(err)
+
+	res, err := stmt.Exec(r.Position, r.id)
 	logExecStatement(res, err)
 }
 
 func (r *route) get(db *sql.DB) error {
 	return errors.New("Not implemented")
+}
+
+func getRoutesWithoutPosition(db *sql.DB) ([]route, error) {
+	var routes []route
+
+	rows, errQuery := db.Query("SELECT route_id,route_address FROM routes WHERE position IS NULL AND is_current=1;")
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var route route
+		var id int
+		var address string
+
+		err := rows.Scan(&id, &address)
+		checkErr(err)
+
+		route.address = address
+		route.id = id
+
+		log.Printf("No position found for id: %d ", id)
+
+		routes = append(routes, route)
+	}
+
+	return routes, errQuery
 }
 
 func getCurrentRoutes(db *sql.DB) ([]route, error) {

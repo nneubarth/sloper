@@ -89,12 +89,18 @@ func addRoutes(db *sql.DB, config Config) {
 		// pulled from web so is current
 		route.isCurrent = true
 
-		// get position
-		route.Position = getPosition(config.DataSource.Route, route.address)
-
 		//load
 		route.insert(db)
 
+	}
+
+	// add positions if necessary
+	routesWithoutPositions, err := getRoutesWithoutPosition(db)
+	checkFatalErr(err)
+
+	for _, route := range routesWithoutPositions {
+		route.Position = getPosition(config.DataSource.Route, route.address)
+		route.updateRoutePosition(db)
 	}
 }
 
