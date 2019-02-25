@@ -36,8 +36,10 @@ const styles = {
   contentGrid: {
     display: "grid",
     gridTemplateRows: "1fr auto auto",
-    margin: theme.spacing.unit,
-    gridGap: "10px"
+    marginLeft: theme.spacing.unit * 6,
+    marginRight: theme.spacing.unit * 6,
+    marginTop: theme.spacing.unit * 2,
+    gridGap: "20px"
   }
 };
 
