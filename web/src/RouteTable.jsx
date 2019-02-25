@@ -10,12 +10,13 @@ import { withStyles } from "@material-ui/core";
 
 const styles = theme => ({
   root: {
-    width: "100%",
-    marginTop: theme.spacing.unit * 3,
-    overflowX: "auto"
+    // width: "100%",
+    // marginTop: theme.spacing.unit * 3,
+    // padding: theme.spacing.unit * 3,
+    // overflowX: "auto"
   },
   table: {
-    minWidth: 700
+    // minWidth: 700
   }
 });
 
@@ -58,6 +59,7 @@ function RouteTable(props) {
                       style={{
                         width: "10px",
                         height: "10px",
+                        borderRadius: "50%",
                         backgroundColor: `#${route.color}`,
                         margin: "10px"
                       }}

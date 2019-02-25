@@ -5,6 +5,7 @@ import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 
 import TopBar from "./TopBar";
 import RouteTable from "./RouteTable";
+import Map from "./Map";
 
 const theme = createMuiTheme({
   palette: {
@@ -27,8 +28,16 @@ const theme = createMuiTheme({
 });
 
 const styles = {
-  root: {
-    flexGrow: 1
+  rootGrid: {
+    display: "grid",
+    gridTemplateRows: "auto 1fr",
+    backgroundColor: "#dddddd"
+  },
+  contentGrid: {
+    display: "grid",
+    gridTemplateRows: "1fr auto auto",
+    margin: theme.spacing.unit,
+    gridGap: "10px"
   }
 };
 
@@ -82,9 +91,10 @@ class App extends Component {
 
     return (
       <MuiThemeProvider theme={theme}>
-        <div className="App">
-          <div className={classes.root}>
-            <TopBar climberNames={climbers} />
+        <div className={classes.rootGrid}>
+          <TopBar climberNames={climbers} />
+          <div className={classes.contentGrid}>
+            <Map currentRoutes={currentRoutes} />
             <RouteTable currentRoutes={currentRoutes} />
           </div>
         </div>

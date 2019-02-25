@@ -1,4 +1,5 @@
 *.json
+map.png
 
 # dependencies
 /web/node_modules
