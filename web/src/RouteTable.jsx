@@ -17,7 +17,6 @@ const styles = theme => ({
     // overflowX: "auto"
   },
   table: {
-    // minWidth: 700
     padding: "dense"
   },
   header: {
@@ -25,6 +24,10 @@ const styles = theme => ({
   },
   headerCell: {
     color: theme.palette.secondary.contrastText,
+    overflow: "hidden",
+    whiteSpace: "nowrap"
+  },
+  bodyCell: {
     overflow: "hidden",
     whiteSpace: "nowrap"
   },
@@ -88,7 +91,11 @@ class RouteTable extends React.Component {
           <TableBody>
             {currentRoutes.map((route, index) => (
               <TableRow key={index}>
-                <TableCell component="th" scope="row">
+                <TableCell
+                  className={classes.bodyCell}
+                  component="th"
+                  scope="row"
+                >
                   {
                     <div
                       style={{
@@ -109,9 +116,15 @@ class RouteTable extends React.Component {
                     </div>
                   }
                 </TableCell>
-                <TableCell align="right">{route.grade}</TableCell>
-                <TableCell align="right">{route.date}</TableCell>
-                <TableCell align="right">{route.setter}</TableCell>
+                <TableCell className={classes.bodyCell} align="right">
+                  {route.grade}
+                </TableCell>
+                <TableCell className={classes.bodyCell} align="right">
+                  {route.date}
+                </TableCell>
+                <TableCell className={classes.bodyCell} align="right">
+                  {route.setter}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
