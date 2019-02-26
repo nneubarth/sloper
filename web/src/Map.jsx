@@ -3,6 +3,17 @@ import React from "react";
 import Card from "@material-ui/core/Card";
 import Typography from "@material-ui/core/Typography";
 import SvgIcon from "@material-ui/core/SvgIcon";
+import Fab from "@material-ui/core/Fab";
+import FilterListIcon from "@material-ui/icons/FilterList";
+import Drawer from "@material-ui/core/Drawer";
+import IconButton from "@material-ui/core/IconButton";
+import Divider from "@material-ui/core/Divider";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import Select from "@material-ui/core/Select";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import OutlinedInput from "@material-ui/core/OutlinedInput";
 
 import { withStyles } from "@material-ui/core/styles";
 
@@ -29,7 +40,7 @@ const styles = theme => ({
     // width: "100%"
   },
   map: {
-    width: "100%"
+    maxWidth: "950px"
     // boxShadow: "0 3000px rgba(63, 80, 181, .9) inset"
   },
   tint: {
@@ -39,110 +50,154 @@ const styles = theme => ({
     left: "0",
     right: "0",
     borderRadius: "4px",
-    transition: ".5s ease",
     backgroundColor: "rgba(63, 80, 181, .5)"
   },
   infoHeader: {
     margin: "3px"
+  },
+  fab: {
+    margin: theme.spacing.unit,
+    zIndex: "20",
+    position: "absolute",
+    bottom: "0",
+    left: "0"
+  },
+  filterIcon: {
+    margin: theme.spacing.unit
+  },
+  selectContainer: {
+    margin: theme.spacing.unit
+  },
+  formControl: {
+    margin: theme.spacing.unit,
+    minWidth: 200
   }
 });
 
-function createGrid(currentRoutes, handleHover, handleLeave) {
+function createGrid(
+  currentRoutes,
+  handleHover,
+  handleLeave,
+  lowBoulder,
+  highBoulder,
+  lowTopRope,
+  highTopRope,
+  sortedBoulder,
+  sortedTopRope
+) {
   const xBoxSize = 1;
   const yBoxSize = 2;
 
   const occupiedSlots = new Set();
-  return currentRoutes.map((route, index) => {
-    const positions = route.position.split(".");
-    let topPercent = Number.parseInt(positions[0]);
-    let leftPercent = Number.parseInt(positions[1]);
-
-    let xBox = Math.floor(leftPercent / xBoxSize);
-    let yBox = Math.floor(topPercent / yBoxSize);
-    let key = `${xBox}.${yBox}`;
-
-    if (occupiedSlots.has(key)) {
-      // need to find a new slot
-      const positions = [
-        [1, 0],
-        [1, 1],
-        [0, 1],
-        [-1, +1],
-        [-1, 0],
-        [-1, -1],
-        [0, -1],
-        [+1, -1]
-      ];
-      for (let i = 0; i < positions.length; i++) {
-        const newXBox = Math.min(
-          100,
-          Math.max(
-            0,
-            Math.ceil(
-              (leftPercent + positions[i][0] * (xBoxSize / 2.0)) / xBoxSize
-            )
-          )
+  return currentRoutes
+    .filter(route => {
+      if (route.grade.slice(0, 1) === "V") {
+        return (
+          sortedBoulder.indexOf(route.grade) >=
+            sortedBoulder.indexOf(lowBoulder) &&
+          sortedBoulder.indexOf(route.grade) <=
+            sortedBoulder.indexOf(highBoulder)
         );
-        const newYBox = Math.min(
-          100,
-          Math.max(
-            0,
-            Math.ceil(
-              (topPercent + positions[i][1] * (yBoxSize / 2.0)) / yBoxSize
-            )
-          )
-        );
+      }
+      return (
+        sortedTopRope.indexOf(route.grade) >=
+          sortedTopRope.indexOf(lowTopRope) &&
+        sortedTopRope.indexOf(route.grade) <= sortedTopRope.indexOf(highTopRope)
+      );
+    })
+    .map((route, index) => {
+      const positions = route.position.split(".");
+      let topPercent = Number.parseInt(positions[0]);
+      let leftPercent = Number.parseInt(positions[1]);
 
-        const newKey = `${newXBox}.${newYBox}`;
-        if (!occupiedSlots.has(newKey)) {
-          key = newKey;
-          xBox = newXBox;
-          yBox = newYBox;
-          break;
+      let xBox = Math.floor(leftPercent / xBoxSize);
+      let yBox = Math.floor(topPercent / yBoxSize);
+      let key = `${xBox}.${yBox}`;
+
+      if (occupiedSlots.has(key)) {
+        // need to find a new slot
+        const positions = [
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [-1, +1],
+          [-1, 0],
+          [-1, -1],
+          [0, -1],
+          [+1, -1]
+        ];
+        for (let i = 0; i < positions.length; i++) {
+          const newXBox = Math.min(
+            100,
+            Math.max(
+              0,
+              Math.ceil(
+                (leftPercent + positions[i][0] * (xBoxSize / 2.0)) / xBoxSize
+              )
+            )
+          );
+          const newYBox = Math.min(
+            100,
+            Math.max(
+              0,
+              Math.ceil(
+                (topPercent + positions[i][1] * (yBoxSize / 2.0)) / yBoxSize
+              )
+            )
+          );
+
+          const newKey = `${newXBox}.${newYBox}`;
+          if (!occupiedSlots.has(newKey)) {
+            key = newKey;
+            xBox = newXBox;
+            yBox = newYBox;
+            break;
+          }
+        }
+        if (occupiedSlots.has(key)) {
+          xBox = Math.min(
+            100,
+            Math.abs(xBox + Math.round(Math.random()) * 0.5 * xBoxSize)
+          );
+          yBox = Math.min(
+            100,
+            Math.abs(yBox + Math.round(Math.random()) * 0.5 * yBoxSize)
+          );
+          key = `${xBox}.${yBox}`;
         }
       }
-      if (occupiedSlots.has(key)) {
-        xBox = Math.min(
-          100,
-          Math.abs(xBox + Math.round(Math.random()) * 0.5 * xBoxSize)
-        );
-        yBox = Math.min(
-          100,
-          Math.abs(yBox + Math.round(Math.random()) * 0.5 * yBoxSize)
-        );
-        key = `${xBox}.${yBox}`;
-      }
-    }
 
-    occupiedSlots.add(key);
-    topPercent = yBoxSize * yBox;
-    leftPercent = xBoxSize * xBox;
+      occupiedSlots.add(key);
+      topPercent = yBoxSize * yBox;
+      leftPercent = xBoxSize * xBox;
 
-    const dateParts = route.date.split("-");
-    const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      const dateParts = route.date.split("-");
+      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
 
-    const currentDate = new Date();
-    const timeDiff = Math.abs(currentDate - date);
-    const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      const currentDate = new Date();
+      const timeDiff = Math.abs(currentDate - date);
+      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-    return (
-      <Circle
-        color={`#${route.color}`}
-        topPercent={`${topPercent}%`}
-        leftPercent={`${leftPercent}%`}
-        key={index}
-        new={diffDays <= 7}
-        handleHover={handleHover}
-        handleLeave={handleLeave}
-        route={route}
-      />
-    );
-  });
+      return (
+        <Circle
+          color={`#${route.color}`}
+          topPercent={`${topPercent}%`}
+          leftPercent={`${leftPercent}%`}
+          key={index}
+          new={diffDays <= 7}
+          handleHover={handleHover}
+          handleLeave={handleLeave}
+          route={route}
+        />
+      );
+    });
 }
 
 class Map extends React.Component {
   constructor(props) {
     super(props);
+    this.ref = React.createRef();
+
     this.state = {
       displayedRoute: { route: "" },
       showDetails: false,
@@ -161,7 +216,8 @@ class Map extends React.Component {
       showDetails: true,
       topPercent: `${topPercent}%`,
       leftPercent: `${leftPercent}%`,
-      isNew
+      isNew,
+      drawerOpen: false
     });
   };
 
@@ -172,22 +228,167 @@ class Map extends React.Component {
     });
   };
 
+  handleSelectChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
+  };
+
+  openFilterDrawer = () => {
+    this.setState({ drawerOpen: true });
+  };
+  closeFilterDrawer = () => {
+    this.setState({ drawerOpen: false });
+  };
+
   render() {
-    const { classes, currentRoutes } = this.props;
+    const {
+      classes,
+      currentRoutes,
+      boulderOptions = [],
+      topRopeOptions = []
+    } = this.props;
     const {
       displayedRoute = { route: "" },
       showDetails = false,
       topPercent,
       leftPercent,
-      isNew
+      isNew,
+      drawerOpen,
+      lowBoulderGrade = "V Intro",
+      highBoulderGrade = "V11",
+      lowTopRopeGrade = "5.Intro",
+      highTopRopeGrade = "5.13c"
     } = this.state;
+
+    const labelWidth = 135;
 
     return (
       <Card style={{ overflow: "visible", backgroundColor: "#f5f5f6" }}>
-        <div className={classes.root}>
+        <div ref={this.ref} className={classes.root}>
+          <Fab
+            variant="round"
+            aria-label="Filter"
+            className={classes.fab}
+            color="secondary"
+            onClick={this.openFilterDrawer}
+          >
+            <FilterListIcon className={classes.filterIcon} />
+          </Fab>
+          <Drawer
+            open={drawerOpen}
+            variant="persistent"
+            ModalProps={{
+              container: this.ref.current,
+              style: { position: "absolute" }
+            }}
+            PaperProps={{
+              style: { position: "absolute", width: "25%" }
+            }}
+            BackdropProps={{ style: { position: "absolute" } }}
+            transitionDuration={{ enter: 1, exit: 1 }}
+            onClose={() => {}}
+          >
+            <div className={classes.drawerHeader}>
+              <IconButton onClick={this.closeFilterDrawer}>
+                <ChevronLeftIcon />
+              </IconButton>
+            </div>
+            <Divider />
+            <div className={classes.selectContainer}>
+              <FormControl variant="outlined" className={classes.formControl}>
+                <InputLabel>Low boulder grade</InputLabel>
+                <Select
+                  className={classes.select}
+                  value={lowBoulderGrade}
+                  onChange={this.handleSelectChange}
+                  input={
+                    <OutlinedInput
+                      name="lowBoulderGrade"
+                      labelWidth={labelWidth}
+                    />
+                  }
+                >
+                  {boulderOptions.map((grade, index) => (
+                    <MenuItem key={index} value={grade.grade}>
+                      {grade.grade}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl variant="outlined" className={classes.formControl}>
+                <InputLabel>High boulder grade</InputLabel>
+                <Select
+                  className={classes.select}
+                  value={highBoulderGrade}
+                  onChange={this.handleSelectChange}
+                  input={
+                    <OutlinedInput
+                      name="highBoulderGrade"
+                      labelWidth={labelWidth}
+                    />
+                  }
+                >
+                  {boulderOptions.map((grade, index) => (
+                    <MenuItem key={index} value={grade.grade}>
+                      {grade.grade}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl variant="outlined" className={classes.formControl}>
+                <InputLabel>Low top rope grade</InputLabel>
+                <Select
+                  className={classes.select}
+                  value={lowTopRopeGrade}
+                  onChange={this.handleSelectChange}
+                  input={
+                    <OutlinedInput
+                      name="lowTopRopeGrade"
+                      labelWidth={labelWidth}
+                    />
+                  }
+                >
+                  {topRopeOptions.map((grade, index) => (
+                    <MenuItem key={index} value={grade.grade}>
+                      {grade.grade}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl variant="outlined" className={classes.formControl}>
+                <InputLabel>High top rope grade</InputLabel>
+                <Select
+                  className={classes.select}
+                  value={highTopRopeGrade}
+                  onChange={this.handleSelectChange}
+                  input={
+                    <OutlinedInput
+                      name="highTopRopeGrade"
+                      labelWidth={labelWidth}
+                    />
+                  }
+                >
+                  {topRopeOptions.map((grade, index) => (
+                    <MenuItem key={index} value={grade.grade}>
+                      {grade.grade}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </Drawer>
           <div className={classes.tint} />
           <img alt="map" src={map} className={classes.map} />
-          {createGrid(currentRoutes, this.handleHover, this.handleLeave)}
+          {createGrid(
+            currentRoutes,
+            this.handleHover,
+            this.handleLeave,
+            lowBoulderGrade,
+            highBoulderGrade,
+            lowTopRopeGrade,
+            highTopRopeGrade,
+            boulderOptions.map(grade => grade.grade),
+            topRopeOptions.map(grade => grade.grade)
+          )}
           {showDetails ? (
             <Card
               style={{

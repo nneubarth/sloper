@@ -34,8 +34,8 @@ const theme = createMuiTheme({
 const styles = {
   rootGrid: {
     display: "grid",
-    gridTemplateRows: "70px auto",
-    gridTemplateColumns: "auto",
+    gridTemplateRows: "1fr auto",
+    gridTemplateColumns: "1fr",
     gridRowGap: "20px"
   },
   topBar: {},
@@ -43,10 +43,7 @@ const styles = {
     display: "grid",
     justifyContent: "center",
     gridTemplateRows: "auto auto",
-    gridTemplateColumns: " auto",
-    marginLeft: theme.spacing.unit * 6,
-    marginRight: theme.spacing.unit * 6,
-    marginTop: theme.spacing.unit * 2,
+    gridTemplateColumns: "auto",
     gridGap: "20px"
   }
 };
@@ -56,7 +53,9 @@ class App extends Component {
     super(props);
     this.state = {
       climbers: [],
-      currentRoutes: []
+      currentRoutes: [],
+      topRopeOptions: [],
+      boulderOptions: []
     };
     fetch("http://localhost:8080/climbers")
       .then(response => {
@@ -93,18 +92,91 @@ class App extends Component {
           error.message
         );
       });
+    fetch("http://localhost:8080/current-grades")
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error("Network response was not ok.");
+      })
+      .then(data => {
+        const topRopeOptions = data
+          .filter(grade => {
+            return grade.type === "Top rope";
+          })
+          .sort((a, b) => {
+            const aVal = !isNaN(Number.parseInt(a.grade.split(".")[1]))
+              ? Number.parseInt(a.grade.split(".")[1])
+              : 0;
+            const bVal = !isNaN(Number.parseInt(b.grade.split(".")[1]))
+              ? Number.parseInt(b.grade.split(".")[1])
+              : 0;
+            if (aVal < bVal) {
+              return -1;
+            }
+            if (aVal > bVal) {
+              return 1;
+            }
+            if (aVal === bVal) {
+              if (a.grade.slice(-1) < b.grade.slice(-1)) {
+                return -1;
+              }
+              if (a.grade.slice(-1) > b.grade.slice(-1)) {
+                return 1;
+              }
+            }
+            return 0;
+          });
+
+        const boulderOptions = data
+          .filter(grade => {
+            return grade.type === "Boulder";
+          })
+          .sort((a, b) => {
+            const aVal = !isNaN(Number.parseInt(a.grade.split("V")[1]))
+              ? Number.parseInt(a.grade.split("V")[1])
+              : 0;
+            const bVal = !isNaN(Number.parseInt(b.grade.split("V")[1]))
+              ? Number.parseInt(b.grade.split("V")[1])
+              : 0;
+            if (aVal < bVal) {
+              return -1;
+            }
+            if (aVal > bVal) {
+              return 1;
+            }
+            return 0;
+          });
+
+        this.setState({ topRopeOptions, boulderOptions });
+      })
+      .catch(function(error) {
+        console.log(
+          "There has been a problem with your fetch operation: ",
+          error.message
+        );
+      });
   }
 
   render() {
     const { classes } = this.props;
-    const { climbers, currentRoutes } = this.state;
+    const {
+      climbers,
+      currentRoutes,
+      topRopeOptions,
+      boulderOptions
+    } = this.state;
 
     return (
       <MuiThemeProvider theme={theme}>
         <div className={classes.rootGrid}>
           <TopBar className={classes.topBar} climberNames={climbers} />
           <div className={classes.contentGrid}>
-            <Map currentRoutes={currentRoutes} />
+            <Map
+              currentRoutes={currentRoutes}
+              topRopeOptions={topRopeOptions}
+              boulderOptions={boulderOptions}
+            />
             <RouteTable currentRoutes={currentRoutes} />
           </div>
         </div>
