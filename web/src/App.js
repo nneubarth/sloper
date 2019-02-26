@@ -24,18 +24,26 @@ const theme = createMuiTheme({
   },
   typography: {
     useNextVariants: true
+  },
+  background: {
+    default: "#dddddd",
+    paper: "#FFF"
   }
 });
 
 const styles = {
   rootGrid: {
     display: "grid",
-    gridTemplateRows: "auto 1fr",
-    backgroundColor: "#dddddd"
+    gridTemplateRows: "70px auto",
+    gridTemplateColumns: "auto",
+    gridRowGap: "20px"
   },
+  topBar: {},
   contentGrid: {
     display: "grid",
-    gridTemplateRows: "1fr auto auto",
+    justifyContent: "center",
+    gridTemplateRows: "auto auto",
+    gridTemplateColumns: " auto",
     marginLeft: theme.spacing.unit * 6,
     marginRight: theme.spacing.unit * 6,
     marginTop: theme.spacing.unit * 2,
@@ -94,7 +102,7 @@ class App extends Component {
     return (
       <MuiThemeProvider theme={theme}>
         <div className={classes.rootGrid}>
-          <TopBar climberNames={climbers} />
+          <TopBar className={classes.topBar} climberNames={climbers} />
           <div className={classes.contentGrid}>
             <Map currentRoutes={currentRoutes} />
             <RouteTable currentRoutes={currentRoutes} />
