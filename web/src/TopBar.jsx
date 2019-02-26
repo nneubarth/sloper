@@ -95,7 +95,7 @@ function TopBar(props) {
                   <MenuList>
                     {climberNames.map(name => (
                       <MenuItem onClick={handleMenuClose} key={name}>
-                        {name}
+                        {name + " (Coming Soon)"}
                       </MenuItem>
                     ))}
                   </MenuList>
