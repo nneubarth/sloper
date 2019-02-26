@@ -55,6 +55,8 @@ func (ct *climbType) get(db *sql.DB) error {
 type grade struct {
 	name      string
 	climbType climbType
+	GradeName string `json:"grade"`
+	TypeName string `json:"type"`
 }
 
 func (g *grade) insert(db *sql.DB) {
@@ -67,6 +69,32 @@ func (g *grade) insert(db *sql.DB) {
 
 func (g *grade) get(db *sql.DB) error {
 	return errors.New("Not implemented")
+}
+
+func getCurrentGrades(db *sql.DB) ([]grade, error) {
+	var grades []grade
+
+	rows, errQuery := db.Query("SELECT DISTINCT grades.name AS grade, climb_types.type AS type FROM routes INNER JOIN grades ON grades.grade_id=routes.grade LEFT OUTER JOIN climb_types ON grades.climb_type=climb_types.climb_type_id WHERE routes.is_current=1;")
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var grade grade
+		var name string
+		var climbType string
+
+		err := rows.Scan(&name, &climbType)
+		checkErr(err)
+
+		grade.GradeName = name
+		grade.TypeName = climbType
+
+		log.Println(grade)
+
+		grades = append(grades, grade)
+	}
+
+	return grades, errQuery
 }
 
 type route struct {

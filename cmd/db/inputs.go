@@ -54,7 +54,7 @@ func addRoutes(db *sql.DB, config Config) {
 		} else {
 			routeClimbType = climbType{"Top rope"}
 		}
-		route.grade = grade{route.GradeString, routeClimbType}
+		route.grade = grade{route.GradeString, routeClimbType, "", ""}
 
 		// add grade to database if not present
 		route.grade.insert(db)
