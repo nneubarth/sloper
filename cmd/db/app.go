@@ -15,6 +15,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var (
+	updateChannel chan bool
+)
+
 // App represents REST API
 type App struct {
 	Router *mux.Router
@@ -33,14 +37,6 @@ func (a *App) Initialize(config Config) {
 	// Open doesn't open a connection. Validate DSN data:
 	err = db.Ping()
 	checkFatalErr(err)
-
-	initClimbDB(a.DB)
-
-	//add routes
-	addRoutes(a.DB, config)
-
-	//add climbers
-	addClimbersAndClimbs(a.DB, config)
 
 	a.Router = mux.NewRouter()
 	a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")
@@ -64,13 +60,30 @@ func (a *App) Initialize(config Config) {
 		}
 	}()
 
-	c := make(chan os.Signal, 1)
+	initialLoadChannel := make(chan bool)
+	go performInitialLoad(a.DB, config, initialLoadChannel)
+
+	signalChannel := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	go func() {
+		startPeriodicUpdates(a.DB, config)
+	}()
 
 	// Block until we receive our signal.
-	<-c
+	<-signalChannel
+
+	log.Println("Waiting for inital load to end...")
+	<-initialLoadChannel
+	log.Println("Finished initial load.")
+
+	if updateChannel != nil {
+		log.Println("Waiting for update to end...")
+		<-updateChannel
+		log.Println("Finished update.")
+	}
 
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -78,6 +91,7 @@ func (a *App) Initialize(config Config) {
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
 	srv.Shutdown(ctx)
+
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
@@ -88,6 +102,23 @@ func (a *App) Initialize(config Config) {
 
 // Run starts an HTTP server.
 func (a *App) Run(addr string) {}
+
+func performInitialLoad(db *sql.DB, config Config, c chan bool) {
+	initClimbDB(db)
+	//add routes
+	addRoutes(db, config)
+	//add climbers
+	addClimbersAndClimbs(db, config)
+	c <- true
+}
+
+func updateData(db *sql.DB, config Config, c chan bool) {
+	//add routes
+	addRoutes(db, config)
+	//add climbers
+	addClimbersAndClimbs(db, config)
+	c <- true
+}
 
 func checkFatalErr(err error) {
 	if err != nil {

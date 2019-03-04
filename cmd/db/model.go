@@ -56,7 +56,7 @@ type grade struct {
 	name      string
 	climbType climbType
 	GradeName string `json:"grade"`
-	TypeName string `json:"type"`
+	TypeName  string `json:"type"`
 }
 
 func (g *grade) insert(db *sql.DB) {
