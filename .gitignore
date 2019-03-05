@@ -1,5 +1,6 @@
 *.json
 map.png
+cmd/db/*.sql
 
 # dependencies
 /web/node_modules
