@@ -48,35 +48,37 @@ const styles = {
   }
 };
 
+const host = "45.79.174.43:8080";
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      climbers: [],
+      climbers: ["User data coming soon"],
       currentRoutes: [],
       topRopeOptions: [],
       boulderOptions: []
     };
-    fetch("http://localhost:8080/climbers")
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error("Network response was not ok.");
-      })
-      .then(data => {
-        const climbers = data.map(climber => {
-          return climber.name;
-        });
-        this.setState({ climbers });
-      })
-      .catch(function(error) {
-        console.log(
-          "There has been a problem with your fetch operation: ",
-          error.message
-        );
-      });
-    fetch("http://localhost:8080/current-routes")
+    // fetch("http://localhost:8080/climbers")
+    //   .then(response => {
+    //     if (response.ok) {
+    //       return response.json();
+    //     }
+    //     throw new Error("Network response was not ok.");
+    //   })
+    //   .then(data => {
+    //     const climbers = data.map(climber => {
+    //       return climber.name;
+    //     });
+    //     this.setState({ climbers });
+    //   })
+    //   .catch(function(error) {
+    //     console.log(
+    //       "There has been a problem with your fetch operation: ",
+    //       error.message
+    //     );
+    //   });
+    fetch(`http://${host}/current-routes`)
       .then(response => {
         if (response.ok) {
           return response.json();
@@ -92,7 +94,7 @@ class App extends Component {
           error.message
         );
       });
-    fetch("http://localhost:8080/current-grades")
+    fetch(`http://${host}/current-grades`)
       .then(response => {
         if (response.ok) {
           return response.json();

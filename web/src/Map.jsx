@@ -89,108 +89,121 @@ function createGrid(
   const yBoxSize = 2;
 
   const occupiedSlots = new Set();
-  return currentRoutes
-    .filter(route => {
-      if (route.grade.slice(0, 1) === "V") {
-        return (
-          sortedBoulder.indexOf(route.grade) >=
-            sortedBoulder.indexOf(lowBoulder) &&
-          sortedBoulder.indexOf(route.grade) <=
-            sortedBoulder.indexOf(highBoulder)
+
+  return (
+    currentRoutes
+      // get rid of routes that are placed at 0.0
+      // TODO: add ability for users to change position
+      .filter(route => {
+        const positions = route.position.split(".");
+        return !(
+          Number.parseInt(positions[0]) === 0 &&
+          Number.parseInt(positions[1]) === 0
         );
-      }
-      return (
-        sortedTopRope.indexOf(route.grade) >=
-          sortedTopRope.indexOf(lowTopRope) &&
-        sortedTopRope.indexOf(route.grade) <= sortedTopRope.indexOf(highTopRope)
-      );
-    })
-    .map((route, index) => {
-      const positions = route.position.split(".");
-      let topPercent = Number.parseInt(positions[0]);
-      let leftPercent = Number.parseInt(positions[1]);
-
-      let xBox = Math.floor(leftPercent / xBoxSize);
-      let yBox = Math.floor(topPercent / yBoxSize);
-      let key = `${xBox}.${yBox}`;
-
-      if (occupiedSlots.has(key)) {
-        // need to find a new slot
-        const positions = [
-          [1, 0],
-          [1, 1],
-          [0, 1],
-          [-1, +1],
-          [-1, 0],
-          [-1, -1],
-          [0, -1],
-          [+1, -1]
-        ];
-        for (let i = 0; i < positions.length; i++) {
-          const newXBox = Math.min(
-            100,
-            Math.max(
-              0,
-              Math.ceil(
-                (leftPercent + positions[i][0] * (xBoxSize / 2.0)) / xBoxSize
-              )
-            )
+      })
+      .filter(route => {
+        if (route.grade.slice(0, 1) === "V") {
+          return (
+            sortedBoulder.indexOf(route.grade) >=
+              sortedBoulder.indexOf(lowBoulder) &&
+            sortedBoulder.indexOf(route.grade) <=
+              sortedBoulder.indexOf(highBoulder)
           );
-          const newYBox = Math.min(
-            100,
-            Math.max(
-              0,
-              Math.ceil(
-                (topPercent + positions[i][1] * (yBoxSize / 2.0)) / yBoxSize
-              )
-            )
-          );
+        }
+        return (
+          sortedTopRope.indexOf(route.grade) >=
+            sortedTopRope.indexOf(lowTopRope) &&
+          sortedTopRope.indexOf(route.grade) <=
+            sortedTopRope.indexOf(highTopRope)
+        );
+      })
+      .map((route, index) => {
+        const positions = route.position.split(".");
+        let topPercent = Number.parseInt(positions[0]);
+        let leftPercent = Number.parseInt(positions[1]);
 
-          const newKey = `${newXBox}.${newYBox}`;
-          if (!occupiedSlots.has(newKey)) {
-            key = newKey;
-            xBox = newXBox;
-            yBox = newYBox;
-            break;
+        let xBox = Math.floor(leftPercent / xBoxSize);
+        let yBox = Math.floor(topPercent / yBoxSize);
+        let key = `${xBox}.${yBox}`;
+
+        if (occupiedSlots.has(key)) {
+          // need to find a new slot
+          const positions = [
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [-1, +1],
+            [-1, 0],
+            [-1, -1],
+            [0, -1],
+            [+1, -1]
+          ];
+          for (let i = 0; i < positions.length; i++) {
+            const newXBox = Math.min(
+              100,
+              Math.max(
+                0,
+                Math.ceil(
+                  (leftPercent + positions[i][0] * (xBoxSize / 2.0)) / xBoxSize
+                )
+              )
+            );
+            const newYBox = Math.min(
+              100,
+              Math.max(
+                0,
+                Math.ceil(
+                  (topPercent + positions[i][1] * (yBoxSize / 2.0)) / yBoxSize
+                )
+              )
+            );
+
+            const newKey = `${newXBox}.${newYBox}`;
+            if (!occupiedSlots.has(newKey)) {
+              key = newKey;
+              xBox = newXBox;
+              yBox = newYBox;
+              break;
+            }
+          }
+          if (occupiedSlots.has(key)) {
+            xBox = Math.min(
+              100,
+              Math.abs(xBox + Math.round(Math.random()) * 0.5 * xBoxSize)
+            );
+            yBox = Math.min(
+              100,
+              Math.abs(yBox + Math.round(Math.random()) * 0.5 * yBoxSize)
+            );
+            key = `${xBox}.${yBox}`;
           }
         }
-        if (occupiedSlots.has(key)) {
-          xBox = Math.min(
-            100,
-            Math.abs(xBox + Math.round(Math.random()) * 0.5 * xBoxSize)
-          );
-          yBox = Math.min(
-            100,
-            Math.abs(yBox + Math.round(Math.random()) * 0.5 * yBoxSize)
-          );
-          key = `${xBox}.${yBox}`;
-        }
-      }
 
-      occupiedSlots.add(key);
-      topPercent = yBoxSize * yBox;
-      leftPercent = xBoxSize * xBox;
+        occupiedSlots.add(key);
+        topPercent = yBoxSize * yBox;
+        leftPercent = xBoxSize * xBox;
 
-      const dateParts = route.date.split("-");
-      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        const dateParts = route.date.split("-");
+        const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
 
-      const currentDate = new Date();
-      const timeDiff = Math.abs(currentDate - date);
-      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        const currentDate = new Date();
+        const timeDiff = Math.abs(currentDate - date);
+        const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-      return (
-        <Circle
-          color={`#${route.color}`}
-          topPercent={`${topPercent}%`}
-          leftPercent={`${leftPercent}%`}
-          key={index}
-          new={diffDays <= 7}
-          handleHover={handleHover}
-          handleLeave={handleLeave}
-          route={route}
-        />
-      );
-    });
+        return (
+          <Circle
+            color={`#${route.color}`}
+            topPercent={`${topPercent}%`}
+            leftPercent={`${leftPercent}%`}
+            key={index}
+            new={diffDays <= 7}
+            handleHover={handleHover}
+            handleLeave={handleLeave}
+            route={route}
+          />
+        );
+      })
+  );
 }
 
 class Map extends React.Component {
