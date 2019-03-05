@@ -9,6 +9,6 @@
 * Display climbing routes/problems in a table and on a map, which can be filtered by grade. 
 * Store historical user climbing data and provide multiple analysis panels to track performance. 
 
-Demo coming soon.
+[Live Demo](http://sloper.nicoleneubarth.com)
 
 ![sloper screenshot](/sloperscreenshot.png)
