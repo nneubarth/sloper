@@ -28,7 +28,7 @@ type App struct {
 // Initialize initializes the database and pulls available data in from outside sources.
 func (a *App) Initialize(config Config) {
 	// returns a handle (*sql.DB) for the database.
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s", config.Database.Username, config.Database.Password, config.Database.DBName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s", config.Database.Username, config.Database.Password, config.Database.DBHost, config.Database.DBName))
 	checkFatalErr(err)
 	a.DB = db
 	// defer closing the database connection
@@ -39,7 +39,7 @@ func (a *App) Initialize(config Config) {
 	checkFatalErr(err)
 
 	a.Router = mux.NewRouter()
-	a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")
+	// a.Router.HandleFunc("/query", a.rawQueryHandler).Methods("POST")
 	a.Router.HandleFunc("/climbers", a.getClimbers).Methods("GET")
 	a.Router.HandleFunc("/current-routes", a.getCurrentRoutes).Methods("GET")
 	a.Router.HandleFunc("/current-grades", a.getCurrentGrades).Methods("GET")
@@ -50,7 +50,7 @@ func (a *App) Initialize(config Config) {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      handlers.CORS(handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"http://localhost:3000"}))(a.Router), // Pass our instance of gorilla/mux in.
+		Handler:      handlers.CORS(handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"http://sloper.nicoleneubarth.com", "http://localhost:3000"}))(a.Router), // Pass our instance of gorilla/mux in.
 	}
 
 	// Run our server in a goroutine so that it doesn't block.

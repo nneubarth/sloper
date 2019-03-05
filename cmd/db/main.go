@@ -1,8 +1,12 @@
 package main
 
+import "os"
+
 func main() {
 
-	config := LoadConfiguration("./config.json")
+	configPath := os.Args[1]
+
+	config := LoadConfiguration(configPath)
 
 	app := App{}
 	app.Initialize(config)

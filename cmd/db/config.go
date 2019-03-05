@@ -12,6 +12,7 @@ type Config struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 		DBName   string `json:"dbname"`
+		DBHost   string `json:"dbhost"`
 	} `json:"database"`
 	DataSource struct {
 		Routes string `json:"routes"`
