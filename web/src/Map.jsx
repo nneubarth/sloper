@@ -3,22 +3,13 @@ import React from "react";
 import Card from "@material-ui/core/Card";
 import Typography from "@material-ui/core/Typography";
 import SvgIcon from "@material-ui/core/SvgIcon";
-import Fab from "@material-ui/core/Fab";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import Drawer from "@material-ui/core/Drawer";
-import IconButton from "@material-ui/core/IconButton";
-import Divider from "@material-ui/core/Divider";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import Select from "@material-ui/core/Select";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import OutlinedInput from "@material-ui/core/OutlinedInput";
+import Hidden from "@material-ui/core/Hidden";
 
 import { withStyles } from "@material-ui/core/styles";
 
 import Circle from "./Circle";
 import map from "./map.png";
+import FilterPanel from "./FilterPanel";
 
 function NewIcon(props) {
   return (
@@ -55,22 +46,14 @@ const styles = theme => ({
   infoHeader: {
     margin: "3px"
   },
-  fab: {
-    margin: theme.spacing.unit,
-    zIndex: "20",
+  noData: {
     position: "absolute",
+    top: "0",
     bottom: "0",
-    left: "0"
-  },
-  filterIcon: {
-    margin: theme.spacing.unit
-  },
-  selectContainer: {
-    margin: theme.spacing.unit
-  },
-  formControl: {
-    margin: theme.spacing.unit,
-    minWidth: 200
+    left: "0",
+    right: "0",
+    borderRadius: "4px",
+    backgroundColor: "rgba(63, 80, 181, .5)"
   }
 });
 
@@ -245,19 +228,12 @@ class Map extends React.Component {
     this.setState({ [event.target.name]: event.target.value });
   };
 
-  openFilterDrawer = () => {
-    this.setState({ drawerOpen: true });
-  };
-  closeFilterDrawer = () => {
-    this.setState({ drawerOpen: false });
-  };
-
   render() {
     const {
       classes,
       currentRoutes,
-      boulderOptions = [],
-      topRopeOptions = []
+      availableBoulderGrades = [],
+      availableTopRopeGrades = []
     } = this.props;
     const {
       displayedRoute = { route: "" },
@@ -265,142 +241,63 @@ class Map extends React.Component {
       topPercent,
       leftPercent,
       isNew,
-      drawerOpen,
-      lowBoulderGrade = "V Intro",
-      highBoulderGrade = "V11",
-      lowTopRopeGrade = "5.Intro",
-      highTopRopeGrade = "5.13c"
+      lowBoulderGrade = availableBoulderGrades.length > 0
+        ? availableBoulderGrades[0].grade
+        : "",
+      highBoulderGrade = availableBoulderGrades.length > 0
+        ? availableBoulderGrades[availableBoulderGrades.length - 1].grade
+        : "",
+      lowTopRopeGrade = availableBoulderGrades.length > 0
+        ? availableTopRopeGrades[0].grade
+        : "",
+      highTopRopeGrade = availableBoulderGrades.length > 0
+        ? availableTopRopeGrades[availableTopRopeGrades.length - 1].grade
+        : ""
     } = this.state;
-
-    const labelWidth = 135;
 
     return (
       <Card style={{ overflow: "visible", backgroundColor: "#f5f5f6" }}>
         <div ref={this.ref} className={classes.root}>
-          <Fab
-            variant="round"
-            aria-label="Filter"
-            className={classes.fab}
-            color="secondary"
-            onClick={this.openFilterDrawer}
-          >
-            <FilterListIcon className={classes.filterIcon} />
-          </Fab>
-          <Drawer
-            open={drawerOpen}
-            variant="persistent"
-            ModalProps={{
-              container: this.ref.current,
-              style: { position: "absolute" }
-            }}
-            PaperProps={{
-              style: { position: "absolute", width: "25%" }
-            }}
-            BackdropProps={{ style: { position: "absolute" } }}
-            transitionDuration={{ enter: 1, exit: 1 }}
-            onClose={() => {}}
-          >
-            <div className={classes.drawerHeader}>
-              <IconButton onClick={this.closeFilterDrawer}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <Divider />
-            <div className={classes.selectContainer}>
-              <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel>Low boulder grade</InputLabel>
-                <Select
-                  className={classes.select}
-                  value={lowBoulderGrade}
-                  onChange={this.handleSelectChange}
-                  input={
-                    <OutlinedInput
-                      name="lowBoulderGrade"
-                      labelWidth={labelWidth}
-                    />
-                  }
-                >
-                  {boulderOptions.map((grade, index) => (
-                    <MenuItem key={index} value={grade.grade}>
-                      {grade.grade}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel>High boulder grade</InputLabel>
-                <Select
-                  className={classes.select}
-                  value={highBoulderGrade}
-                  onChange={this.handleSelectChange}
-                  input={
-                    <OutlinedInput
-                      name="highBoulderGrade"
-                      labelWidth={labelWidth}
-                    />
-                  }
-                >
-                  {boulderOptions.map((grade, index) => (
-                    <MenuItem key={index} value={grade.grade}>
-                      {grade.grade}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel>Low top rope grade</InputLabel>
-                <Select
-                  className={classes.select}
-                  value={lowTopRopeGrade}
-                  onChange={this.handleSelectChange}
-                  input={
-                    <OutlinedInput
-                      name="lowTopRopeGrade"
-                      labelWidth={labelWidth}
-                    />
-                  }
-                >
-                  {topRopeOptions.map((grade, index) => (
-                    <MenuItem key={index} value={grade.grade}>
-                      {grade.grade}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel>High top rope grade</InputLabel>
-                <Select
-                  className={classes.select}
-                  value={highTopRopeGrade}
-                  onChange={this.handleSelectChange}
-                  input={
-                    <OutlinedInput
-                      name="highTopRopeGrade"
-                      labelWidth={labelWidth}
-                    />
-                  }
-                >
-                  {topRopeOptions.map((grade, index) => (
-                    <MenuItem key={index} value={grade.grade}>
-                      {grade.grade}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-          </Drawer>
+          <Hidden smDown>
+            <FilterPanel
+              lowBoulderGrade={lowBoulderGrade}
+              highBoulderGrade={highBoulderGrade}
+              lowTopRopeGrade={lowTopRopeGrade}
+              highTopRopeGrade={highTopRopeGrade}
+              availableBoulderGrades={availableBoulderGrades}
+              availableTopRopeGrades={availableTopRopeGrades}
+              anchorElement={this.ref.current}
+              handleSelectCallback={this.handleSelectChange}
+            />
+          </Hidden>
           <div className={classes.tint} />
           <img alt="map" src={map} className={classes.map} />
-          {createGrid(
-            currentRoutes,
-            this.handleHover,
-            this.handleLeave,
-            lowBoulderGrade,
-            highBoulderGrade,
-            lowTopRopeGrade,
-            highTopRopeGrade,
-            boulderOptions.map(grade => grade.grade),
-            topRopeOptions.map(grade => grade.grade)
+          {availableTopRopeGrades.length > 0 ||
+          availableBoulderGrades.length > 0 ? (
+            createGrid(
+              currentRoutes,
+              this.handleHover,
+              this.handleLeave,
+              lowBoulderGrade,
+              highBoulderGrade,
+              lowTopRopeGrade,
+              highTopRopeGrade,
+              availableBoulderGrades.map(grade => grade.grade),
+              availableTopRopeGrades.map(grade => grade.grade)
+            )
+          ) : (
+            <div className={classes.noData}>
+              <Typography
+                variant="h2"
+                style={{
+                  color: "white",
+                  textAlign: "center",
+                  padding: "200px"
+                }}
+              >
+                No data available
+              </Typography>
+            </div>
           )}
           {showDetails ? (
             <Card

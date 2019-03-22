@@ -44,7 +44,8 @@ const styles = {
     justifyContent: "center",
     gridTemplateRows: "auto auto",
     gridTemplateColumns: "auto",
-    gridGap: "20px"
+    gridGap: "20px",
+    padding: "1rem"
   }
 };
 
@@ -56,8 +57,8 @@ class App extends Component {
     this.state = {
       climbers: ["User data coming soon"],
       currentRoutes: [],
-      topRopeOptions: [],
-      boulderOptions: []
+      availableTopRopeGrades: [],
+      availableBoulderGrades: []
     };
     // fetch("http://localhost:8080/climbers")
     //   .then(response => {
@@ -102,7 +103,7 @@ class App extends Component {
         throw new Error("Network response was not ok.");
       })
       .then(data => {
-        const topRopeOptions = data
+        const availableTopRopeGrades = data
           .filter(grade => {
             return grade.type === "Top rope";
           })
@@ -130,7 +131,7 @@ class App extends Component {
             return 0;
           });
 
-        const boulderOptions = data
+        const availableBoulderGrades = data
           .filter(grade => {
             return grade.type === "Boulder";
           })
@@ -150,7 +151,7 @@ class App extends Component {
             return 0;
           });
 
-        this.setState({ topRopeOptions, boulderOptions });
+        this.setState({ availableTopRopeGrades, availableBoulderGrades });
       })
       .catch(function(error) {
         console.log(
@@ -165,8 +166,8 @@ class App extends Component {
     const {
       climbers,
       currentRoutes,
-      topRopeOptions,
-      boulderOptions
+      availableTopRopeGrades,
+      availableBoulderGrades
     } = this.state;
 
     return (
@@ -176,8 +177,8 @@ class App extends Component {
           <div className={classes.contentGrid}>
             <Map
               currentRoutes={currentRoutes}
-              topRopeOptions={topRopeOptions}
-              boulderOptions={boulderOptions}
+              availableTopRopeGrades={availableTopRopeGrades}
+              availableBoulderGrades={availableBoulderGrades}
             />
             <RouteTable currentRoutes={currentRoutes} />
           </div>
