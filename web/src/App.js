@@ -1,11 +1,11 @@
 import React, { Component } from "react";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 
 import { withStyles } from "@material-ui/core/styles";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
+import Main from "./Main";
 
 import TopBar from "./TopBar";
-import RouteTable from "./RouteTable";
-import Map from "./Map";
 
 const theme = createMuiTheme({
   palette: {
@@ -175,12 +175,22 @@ class App extends Component {
         <div className={classes.rootGrid}>
           <TopBar className={classes.topBar} climberNames={climbers} />
           <div className={classes.contentGrid}>
-            <Map
-              currentRoutes={currentRoutes}
-              availableTopRopeGrades={availableTopRopeGrades}
-              availableBoulderGrades={availableBoulderGrades}
-            />
-            <RouteTable currentRoutes={currentRoutes} />
+            <Router>
+              <Route
+                exact
+                path="/"
+                component={() => {
+                  return (
+                    <Main
+                      currentRoutes={currentRoutes}
+                      availableBoulderGrades={availableBoulderGrades}
+                      availableTopRopeGrades={availableTopRopeGrades}
+                    />
+                  );
+                }}
+              />
+              <Route path="/users/" component={() => 123} />
+            </Router>
           </div>
         </div>
       </MuiThemeProvider>
