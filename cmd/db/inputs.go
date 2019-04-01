@@ -122,7 +122,7 @@ func addClimbersAndClimbs(db *sql.DB, config Config) {
 		err = decoder.Decode(&data)
 		for _, climb := range data.Data {
 			// set climber
-			climb.climber = climber{name}
+			climb.climber = climber{Name: name}
 			climb.climber.insert(db)
 
 			// convert name

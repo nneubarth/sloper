@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 )
@@ -194,6 +195,7 @@ func getCurrentRoutes(db *sql.DB) ([]route, error) {
 
 type climber struct {
 	Name string `json:"name"`
+	ID   int    `json:"ID"`
 }
 
 func (c *climber) insert(db *sql.DB) {
@@ -208,21 +210,51 @@ func (c *climber) get(db *sql.DB) error {
 	return errors.New("Not implemented")
 }
 
+func (c *climber) getClimbs(db *sql.DB) ([]climb, error) {
+	var climbs []climb
+
+	statement := fmt.Sprintf("SELECT climbs.date AS date, routes.name AS name, grades.name AS grade, setters.name AS setter FROM climbs INNER JOIN routes ON climbs.route=routes.route_id INNER JOIN grades ON routes.grade=grades.grade_id INNER JOIN setters ON setters.setter_id=routes.setter WHERE climbs.climber=%d;", c.ID)
+	rows, errQuery := db.Query(statement)
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var climb climb
+		var date string
+		var name string
+		var grade string
+		var setter string
+		err := rows.Scan(&date, &name, &grade, &setter)
+		checkErr(err)
+
+		climb.RouteName = name
+		climb.DateString = date
+		climb.GradeString = grade
+		climb.SetterName = setter
+
+		climbs = append(climbs, climb)
+	}
+
+	return climbs, errQuery
+}
+
 func getClimbers(db *sql.DB) ([]climber, error) {
 	var climbers []climber
 
-	rows, errQuery := db.Query("SELECT name FROM climbers;")
+	rows, errQuery := db.Query("SELECT climber_id, name FROM climbers;")
 	checkErr(errQuery)
 	defer rows.Close()
 
 	for rows.Next() {
 		var climber climber
 		var name string
-		err := rows.Scan(&name)
+		var id int
+		err := rows.Scan(&id, &name)
 		checkErr(err)
 		log.Println(name)
 
 		climber.Name = name
+		climber.ID = id
 
 		climbers = append(climbers, climber)
 	}
@@ -254,6 +286,8 @@ type climb struct {
 	RouteName   string `json:"route"`
 	DateString  string `json:"date"`
 	TypeString  string `json:"type"`
+	GradeString string `json:"grade"`
+	SetterName  string `json:"setter"`
 }
 
 func (c *climb) insert(db *sql.DB) {

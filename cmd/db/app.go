@@ -43,7 +43,7 @@ func (a *App) Initialize(config Config) {
 	a.Router.HandleFunc("/climbers", a.getClimbers).Methods("GET")
 	a.Router.HandleFunc("/current-routes", a.getCurrentRoutes).Methods("GET")
 	a.Router.HandleFunc("/current-grades", a.getCurrentGrades).Methods("GET")
-	a.Router.HandleFunc("/climber/{id:[0-9]+}", a.getClimbers).Methods("GET")
+	a.Router.HandleFunc("/climber-history/{id:[0-9]+}", a.getClimbsForClimber).Methods("GET")
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",
