@@ -7,9 +7,9 @@ import Hidden from "@material-ui/core/Hidden";
 
 import { withStyles } from "@material-ui/core/styles";
 
-import Circle from "./Circle";
 import map from "./map.png";
 import FilterPanel from "./FilterPanel";
+import "./map.css";
 
 function NewIcon(props) {
   return (
@@ -33,6 +33,11 @@ const styles = theme => ({
   map: {
     maxWidth: "950px"
     // boxShadow: "0 3000px rgba(63, 80, 181, .9) inset"
+  },
+  svgPoints: {
+    position: "absolute",
+    top: "0",
+    left: "0"
   },
   tint: {
     position: "absolute",
@@ -59,8 +64,7 @@ const styles = theme => ({
 
 function createGrid(
   currentRoutes,
-  handleHover,
-  handleLeave,
+  toggleInfoCard,
   lowBoulder,
   highBoulder,
   lowTopRope,
@@ -106,7 +110,7 @@ function createGrid(
         let leftPercent = Number.parseInt(positions[1]);
 
         let xBox = Math.floor(leftPercent / xBoxSize);
-        let yBox = Math.floor(topPercent / yBoxSize);
+        let yBox = Math.max(1, Math.floor(topPercent / yBoxSize));
         let key = `${xBox}.${yBox}`;
 
         if (occupiedSlots.has(key)) {
@@ -149,17 +153,6 @@ function createGrid(
               break;
             }
           }
-          if (occupiedSlots.has(key)) {
-            xBox = Math.min(
-              100,
-              Math.abs(xBox + Math.round(Math.random()) * 0.5 * xBoxSize)
-            );
-            yBox = Math.min(
-              100,
-              Math.abs(yBox + Math.round(Math.random()) * 0.5 * yBoxSize)
-            );
-            key = `${xBox}.${yBox}`;
-          }
         }
 
         occupiedSlots.add(key);
@@ -173,16 +166,26 @@ function createGrid(
         const timeDiff = Math.abs(currentDate - date);
         const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
+        const isNew = diffDays <= 7;
+
         return (
-          <Circle
-            color={`#${route.color}`}
-            topPercent={`${topPercent}%`}
-            leftPercent={`${leftPercent}%`}
-            key={index}
-            new={diffDays <= 7}
-            handleHover={handleHover}
-            handleLeave={handleLeave}
-            route={route}
+          <circle
+            style={{
+              transition: `stroke-opacity .25s, stroke-width .25s, transform .25s`,
+              transformOrigin: `${leftPercent}% ${topPercent}%`,
+              cursor: "pointer"
+            }}
+            cx={`${leftPercent}%`}
+            cy={`${topPercent}%`}
+            r="5"
+            key={route.route}
+            stroke={isNew ? "white" : "transparent"}
+            strokeWidth={isNew ? "2px" : "0px"}
+            opacity=".8"
+            fill={`#${route.color}`}
+            onClick={() =>
+              toggleInfoCard(route, topPercent, leftPercent, isNew)
+            }
           />
         );
       })
@@ -202,22 +205,26 @@ class Map extends React.Component {
       isNew: false
     };
   }
-  handleHover = (route, topPercent, leftPercent, isNew) => {
-    const top = topPercent.split("%");
-    topPercent = Number.parseInt(top[0]) + 2;
-    const left = leftPercent.split("%");
-    leftPercent = Number.parseInt(left[0]) + 1;
-    this.setState({
-      displayedRoute: route,
-      showDetails: true,
-      topPercent: `${topPercent}%`,
-      leftPercent: `${leftPercent}%`,
-      isNew,
-      drawerOpen: false
-    });
+  toggleInfoCard = (route, topPercent, leftPercent, isNew) => {
+    const { showDetails, displayedRoute } = this.state;
+    if (showDetails && displayedRoute.route === route.route) {
+      this.setState({
+        displayedRoute: { route: "" },
+        showDetails: false
+      });
+    } else {
+      this.setState({
+        displayedRoute: route,
+        showDetails: true,
+        topPercent: `${topPercent}%`,
+        leftPercent: `${leftPercent}%`,
+        isNew,
+        drawerOpen: false
+      });
+    }
   };
 
-  handleLeave = () => {
+  handleCardClick = () => {
     this.setState({
       displayedRoute: { route: "" },
       showDetails: false
@@ -274,17 +281,18 @@ class Map extends React.Component {
           <img alt="map" src={map} className={classes.map} />
           {availableTopRopeGrades.length > 0 ||
           availableBoulderGrades.length > 0 ? (
-            createGrid(
-              currentRoutes,
-              this.handleHover,
-              this.handleLeave,
-              lowBoulderGrade,
-              highBoulderGrade,
-              lowTopRopeGrade,
-              highTopRopeGrade,
-              availableBoulderGrades.map(grade => grade.grade),
-              availableTopRopeGrades.map(grade => grade.grade)
-            )
+            <svg className={classes.svgPoints} viewBox="0 0 950 437">
+              {createGrid(
+                currentRoutes,
+                this.toggleInfoCard,
+                lowBoulderGrade,
+                highBoulderGrade,
+                lowTopRopeGrade,
+                highTopRopeGrade,
+                availableBoulderGrades.map(grade => grade.grade),
+                availableTopRopeGrades.map(grade => grade.grade)
+              )}
+            </svg>
           ) : (
             <div className={classes.noData}>
               <Typography
@@ -310,8 +318,10 @@ class Map extends React.Component {
                 left: leftPercent,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
-                zIndex: "20"
+                zIndex: "20",
+                cursor: "pointer"
               }}
+              onClick={this.handleCardClick}
             >
               <div style={{ margin: "10px" }}>
                 <div

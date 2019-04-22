@@ -1,0 +1,4 @@
+circle:hover {
+  transform: scale(1.5);
+  opacity: 1;
+}
