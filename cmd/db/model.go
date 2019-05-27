@@ -213,7 +213,7 @@ func (c *climber) get(db *sql.DB) error {
 func (c *climber) getClimbs(db *sql.DB) ([]climb, error) {
 	var climbs []climb
 
-	statement := fmt.Sprintf("SELECT climbs.date AS date, routes.name AS name, grades.name AS grade, setters.name AS setter FROM climbs INNER JOIN routes ON climbs.route=routes.route_id INNER JOIN grades ON routes.grade=grades.grade_id INNER JOIN setters ON setters.setter_id=routes.setter WHERE climbs.climber=%d;", c.ID)
+	statement := fmt.Sprintf("SELECT climbs.date AS date, routes.name AS name, grades.name AS grade, setters.name AS setter, attempt_types.type AS type FROM climbs INNER JOIN routes ON climbs.route=routes.route_id INNER JOIN grades ON routes.grade=grades.grade_id INNER JOIN setters ON setters.setter_id=routes.setter INNER JOIN attempt_types ON climbs.attempt = attempt_types.attempt_type_id WHERE climbs.climber=%d;", c.ID)
 	rows, errQuery := db.Query(statement)
 	checkErr(errQuery)
 	defer rows.Close()
@@ -224,13 +224,15 @@ func (c *climber) getClimbs(db *sql.DB) ([]climb, error) {
 		var name string
 		var grade string
 		var setter string
-		err := rows.Scan(&date, &name, &grade, &setter)
+		var attemptType string
+		err := rows.Scan(&date, &name, &grade, &setter, &attemptType)
 		checkErr(err)
 
 		climb.RouteName = name
 		climb.DateString = date
 		climb.GradeString = grade
 		climb.SetterName = setter
+		climb.TypeString = attemptType
 
 		climbs = append(climbs, climb)
 	}
