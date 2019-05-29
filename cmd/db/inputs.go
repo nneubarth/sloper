@@ -78,6 +78,9 @@ func addRoutes(db *sql.DB, config Config) {
 		// convert name
 		re = regexp.MustCompile(".*</i>\\s(.*)</a>$")
 		route.RouteName = re.FindStringSubmatch(route.RouteName)[1]
+		if len(route.RouteName) > 45 {
+			route.RouteName = route.RouteName[0:45]
+		}
 
 		// convert date
 		layout := "2006-01-02"
