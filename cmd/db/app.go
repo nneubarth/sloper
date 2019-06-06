@@ -44,6 +44,7 @@ func (a *App) Initialize(config Config) {
 	a.Router.HandleFunc("/current-routes", a.getCurrentRoutes).Methods("GET")
 	a.Router.HandleFunc("/current-grades", a.getCurrentGrades).Methods("GET")
 	a.Router.HandleFunc("/climber-history/{id:[0-9]+}", a.getClimbsForClimber).Methods("GET")
+	a.Router.HandleFunc("/climber-history/boulder-sends/{id:[0-9]+}", a.getBoulderingSendHistory).Methods("GET")
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8080",
@@ -107,9 +108,9 @@ func (a *App) Run(addr string) {}
 func performInitialLoad(db *sql.DB, config Config, c chan bool) {
 	initClimbDB(db)
 	//add routes
-	addRoutes(db, config)
+	//addRoutes(db, config)
 	//add climbers
-	addClimbersAndClimbs(db, config)
+	//addClimbersAndClimbs(db, config)
 	c <- true
 }
 

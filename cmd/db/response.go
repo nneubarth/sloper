@@ -132,6 +132,30 @@ func (a *App) getClimbsForClimber(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (a *App) getBoulderingSendHistory(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, varErr := strconv.Atoi(vars["id"])
+	if varErr != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid climber ID")
+		return
+	}
+
+	climber := climber{ID: id}
+	res, err := climber.getBoulderSendsOverTime(a.DB)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Climber not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, res)
+}
+
 func (a *App) getCurrentRoutes(w http.ResponseWriter, r *http.Request) {
 
 	res, err := getCurrentRoutes(a.DB)

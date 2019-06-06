@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -91,6 +92,28 @@ func getCurrentGrades(db *sql.DB) ([]grade, error) {
 		grade.TypeName = climbType
 
 		log.Println(grade)
+
+		grades = append(grades, grade)
+	}
+
+	return grades, errQuery
+}
+
+func getCurrentBoulderGrades(db *sql.DB) ([]grade, error) {
+	var grades []grade
+
+	rows, errQuery := db.Query("SELECT DISTINCT grades.name AS grade FROM routes INNER JOIN grades ON grades.grade_id=routes.grade WHERE grades.climb_type=2;")
+	checkErr(errQuery)
+	defer rows.Close()
+
+	for rows.Next() {
+		var grade grade
+		var name string
+
+		err := rows.Scan(&name)
+		checkErr(err)
+
+		grade.GradeName = name
 
 		grades = append(grades, grade)
 	}
@@ -238,6 +261,69 @@ func (c *climber) getClimbs(db *sql.DB) ([]climb, error) {
 	}
 
 	return climbs, errQuery
+}
+
+type sendHistoryCount struct {
+	SendTimes   []string         `json:"sendTimePoints"`
+	SendCounts  map[string][]int `json:"sendCounts"`
+	TotalTimes  []string         `json:"totalTimePoints"`
+	TotalCounts map[string][]int `json:"totalCounts"`
+}
+
+func getTimeString(year int, weekNumber int) string {
+	return strconv.Itoa(year) + "-" + strconv.Itoa(weekNumber)
+}
+
+func (c *climber) getBoulderSendsOverTime(db *sql.DB) (sendHistoryCount, error) {
+
+	sendStatement := fmt.Sprintf("SELECT YEAR(climbs.date) AS year, WEEK(climbs.date) AS week, grades.name AS grade, COUNT(*) AS count FROM climbs INNER JOIN routes ON climbs.route=routes.route_id INNER JOIN grades ON routes.grade=grades.grade_id WHERE climbs.climber=%d AND grades.name LIKE 'V%%' GROUP BY WEEK(climbs.date),YEAR(climbs.date),grade ORDER BY year ASC, week ASC;", c.ID)
+	sendRows, errSend := db.Query(sendStatement)
+	checkErr(errSend)
+
+	totalStatement := "SELECT YEAR(routes.date) AS year, WEEK(routes.date) AS week, grades.name AS grade, COUNT(*) AS count FROM routes INNER JOIN grades ON routes.grade=grades.grade_id WHERE grades.name LIKE 'V%' GROUP BY WEEK(routes.date),YEAR(routes.date),grade ORDER BY year ASC, week ASC;"
+	totalRows, errTotal := db.Query(totalStatement)
+	checkErr(errTotal)
+
+	sendCountMap := make(map[string][]int)
+	totalCountMap := make(map[string][]int)
+	var sendTimes []string
+	var totalTimes []string
+
+	grades, err := getCurrentBoulderGrades(db)
+	checkErr(err)
+
+	for _, grade := range grades {
+		sendCountMap[grade.name] = []int{}
+		totalCountMap[grade.name] = []int{}
+	}
+
+	for totalRows.Next() {
+		var year int
+		var weekNumber int
+		var grade string
+		var count int
+		err := totalRows.Scan(&year, &weekNumber, &grade, &count)
+		checkErr(err)
+
+		totalCountMap[grade] = append(totalCountMap[grade], count)
+		totalTimes = append(totalTimes, getTimeString(year, weekNumber))
+	}
+
+	for sendRows.Next() {
+		var year int
+		var weekNumber int
+		var grade string
+		var count int
+		err := sendRows.Scan(&year, &weekNumber, &grade, &count)
+		checkErr(err)
+
+		sendCountMap[grade] = append(sendCountMap[grade], count)
+		sendTimes = append(sendTimes, getTimeString(year, weekNumber))
+	}
+
+	delete(sendCountMap, "")
+	delete(totalCountMap, "")
+	return sendHistoryCount{sendTimes, sendCountMap, totalTimes, totalCountMap}, errSend
 }
 
 func getClimbers(db *sql.DB) ([]climber, error) {
