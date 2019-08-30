@@ -205,6 +205,15 @@ class Map extends React.Component {
       isNew: false
     };
   }
+
+  componentWillMount() {
+    document.addEventListener("mousedown", this.handleClick, false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("mousedown", this.handleClick, false);
+  }
+
   toggleInfoCard = (route, topPercent, leftPercent, isNew) => {
     const { showDetails, displayedRoute } = this.state;
     if (showDetails && displayedRoute.route === route.route) {
@@ -224,11 +233,13 @@ class Map extends React.Component {
     }
   };
 
-  handleCardClick = () => {
-    this.setState({
-      displayedRoute: { route: "" },
-      showDetails: false
-    });
+  handleClick = event => {
+    if (this.ref.current.contains(event.target)) {
+      this.setState({
+        displayedRoute: { route: "" },
+        showDetails: false
+      });
+    }
   };
 
   handleSelectChange = event => {
@@ -321,7 +332,7 @@ class Map extends React.Component {
                 zIndex: "20",
                 cursor: "pointer"
               }}
-              onClick={this.handleCardClick}
+              onClick={this.handleClick}
             >
               <div style={{ margin: "10px" }}>
                 <div
